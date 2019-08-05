@@ -77,24 +77,26 @@ export default () => {
   const [receiver, setReceiver] = useState('')
   const [txStatus, setTxStatus] = useState('')
 
-  useEffect(() => {
-    window.addEventListener('load', async () => {
-      if (window.ethereum) {
-        window.web3 = new Web3(window.ethereum)
-        try {
-          await window.ethereum.enable()
-          alert('web3 has been connected!')
-          setAccount((await window.web3.eth.getAccounts())[0])
-        } catch (error) {
-          alert('User denied account access')
-        }
-      } else {
-        console.log('Non-Ethereum browser detected. Please use MetaMask!')
+  const init = async () => {
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum)
+      try {
+        await window.ethereum.enable()
+        alert('web3 has been connected!')
+        setAccount((await window.web3.eth.getAccounts())[0])
+      } catch (error) {
+        alert('User denied account access')
       }
-    })
+    } else {
+      console.log('Non-Ethereum browser detected. Please use MetaMask!')
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('load', init)
   }, [])
 
-  const [nonce, setNonce] = useState(0)
+  const [clock, setClock] = useState(false)
   useEffect(() => {
     ;(async () => {
       const startTime = Date.now()
@@ -117,9 +119,9 @@ export default () => {
       const deltaTime = Date.now() - startTime
       if (deltaTime < 1000)
         await new Promise(r => setTimeout(r, 1000 - deltaTime))
-      setNonce(nonce + 1)
+      setClock(!clock)
     })()
-  }, [account, nonce])
+  }, [account, clock])
 
   return (
     <Flex flexDirection="column" bg="#efefef" height="100vh">
@@ -136,7 +138,11 @@ export default () => {
         </Flex>
         <Flex>
           <Text mr="30px" color="white">
-            {account || 'Please connect to Metamask'}
+            {account || (
+              <Button onClick={init} bg="white" color="#4a4a4a">
+                Connect To MetaMask
+              </Button>
+            )}
           </Text>
         </Flex>
       </Flex>
